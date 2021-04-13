@@ -5,14 +5,14 @@ from text import symbols
 # Experiment Parameters        #
 ################################
 seed=1234
-output_directory = 'checkpoints/TITML-IDN-F01-A1'
-iters_per_validation=1000
-iters_per_checkpoint=10000
+output_directory = 'DEV/checkpoints/TITML-IDN-F01'
+iters_per_validation=250
+iters_per_checkpoint=1000
 
-data_path = '-DEV/datasets/TITML-IDN-F01-22kHz/preprocess_melTAC_phonEN'
-training_files='-DEV/filelists/TITML-IDN-F01-trainfiles.txt'
-validation_files='-DEV/filelists/TITML-IDN-F01-valfiles.txt'
-test_files='-DEV/filelists/TITML-IDN-F01-valfiles.txt'
+data_path = 'DEV/datasets/TITML-IDN-F01-22kHz/preprocess_melTAC_phonEN'
+training_files='DEV/filelists/TITML-IDN-F01-trainfiles.txt'
+validation_files='DEV/filelists/TITML-IDN-F01-valfiles.txt'
+test_files='DEV/filelists/TITML-IDN-F01-valfiles.txt'
 text_cleaners=['english_cleaners']
 
 
@@ -50,6 +50,6 @@ lr=1e-3
 lr_warmup_steps=4000
 kl_warmup_steps=60000
 grad_clip_thresh=1.0
-batch_size=128
-train_steps = 300000
+batch_size=4
+train_steps=10000 #300000
 

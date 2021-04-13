@@ -1,4 +1,4 @@
-import os, argparse
+import os, sys, argparse
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -88,10 +88,10 @@ def main(args):
     model = Model(hp).cuda()
     optimizer = torch.optim.Adamax(model.parameters(), lr=hp.lr)
     writer = get_writer(hp.output_directory, args.logdir)
-    model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
+    #model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
     
     ### Load trained checkpoint ###
-    if args.checkpoint_path != None:
+    if args.checkpoint_path != '':
         model.load_state_dict(torch.load(args.checkpoint_path)['state_dict'])
         print('#####################')
         print('CHECKPOINT LOADED.')
@@ -106,8 +106,10 @@ def main(args):
             recon_loss, kl_loss, duration_loss, align_loss = model(text_padded, mel_padded, text_lengths, mel_lengths)
 
             alpha=min(1, iteration/hp.kl_warmup_steps)
-            with amp.scale_loss((recon_loss + alpha*kl_loss + duration_loss + align_loss), optimizer) as scaled_loss:
-                scaled_loss.backward()
+            scaled_loss = recon_loss + alpha*kl_loss + duration_loss + align_loss
+            scaled_loss.backward()
+            #with amp.scale_loss((recon_loss + alpha*kl_loss + duration_loss + align_loss), optimizer) as scaled_loss:
+            #    scaled_loss.backward()
 
             iteration += 1
             lr_scheduling(optimizer, iteration)
@@ -118,6 +120,13 @@ def main(args):
             writer.add_scalar('train_kl_loss', kl_loss, global_step=iteration)
             writer.add_scalar('train_duration_loss', duration_loss, global_step=iteration)
             writer.add_scalar('train_align_loss', align_loss, global_step=iteration)
+            
+            sys.stdout.write('\r[Iteration] {}/{} [recon_loss] {} [kl_loss] {} [duration_loss] {} [align_loss] {}'.format(iteration,
+            								   						  hp.train_steps,
+            								   						  recon_loss,
+            								   						  alpha*kl_loss,
+            								   						  duration_loss,
+            								   						  align_loss))
 
             if iteration % (hp.iters_per_validation) == 0:
                 validate(model, val_loader, iteration, writer)
@@ -131,9 +140,9 @@ def main(args):
                 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
-    p.add_argument('--checkpoint_path', type = str, default = None)
+    p.add_argument('--checkpoint_path', type = str, default = '')
     p.add_argument('--gpu', type=str, default='0')
-    p.add_argument('-d', '--logdir', type=str, required=True)
+    p.add_argument('--logdir', type=str, required=True)
     args = p.parse_args()
     
     os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu

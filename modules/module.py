@@ -199,3 +199,4 @@ class Projection(nn.Module):
                 x = layer(x, mask)
         return torch.sigmoid(x)
 
+

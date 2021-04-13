@@ -30,7 +30,7 @@ def prepare_dataloaders(hp):
 def get_writer(output_directory, log_directory):
     logging_path=f'{output_directory}/{log_directory}'
     if not os.path.exists(logging_path):
-        os.mkdir(logging_path)
+        os.makedirs(logging_path, exist_ok = True)
     writer = SummaryWriter(logging_path)
     return writer
 
